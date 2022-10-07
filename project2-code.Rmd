@@ -1,12 +1,42 @@
 ---
 title: "Project2"
-author: "Yuzhi Li"
+author: "Yuzhi Li, Katelyn Settlemyre"
 date: "2022-10-03"
-output: html_document
+output: 
+  html_document:
+    toc: TRUE
+    toc_depth: 2
 ---
+
+```{r packages, include=FALSE}
+#packages needed to get API data and work with it
+library(httr)
+library(jsonlite)
+library(tidyverse)
+```
+
 
 function that contact Food data API
 ```{r}
 res<-GET("https://api.spoonacular.com/recipes/complexSearch?query=chicken&maxFat=60&number=5&apiKey=be3c2a74ce6c4f0c83b254b34ceca7f5")
 ```
 
+# Requirements
+
+
+
+
+
+# API Interaction Functions
+
+
+
+
+
+# Data Exploration
+
+
+
+
+
+# Wrap-Up

@@ -1,0 +1,12 @@
+---
+title: "Project2"
+author: "Yuzhi Li"
+date: "2022-10-03"
+output: html_document
+---
+
+function that contact Food data API
+```{r}
+res<-GET("https://api.spoonacular.com/recipes/complexSearch?query=chicken&maxFat=60&number=5&apiKey=be3c2a74ce6c4f0c83b254b34ceca7f5")
+```
+

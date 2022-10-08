@@ -24,12 +24,14 @@ res<-GET("https://api.spoonacular.com/recipes/complexSearch?query=chicken&maxFat
 
 # Requirements
 
-
-
-
+Here, we list the packages required to interact with the API and use the functions in this vignette.
+- `httr` \- used to access the API  
+- `jsonlite` \- used to convert the data from the API into a data frame  
+- `tidyverse` \- used for data manipulation and graphing
 
 # API Interaction Functions
-
+## `recipe.search`
+Search for recipes given query (i.e., what are you looking for?), diet type, type of dish (such as breakfast, dessert, side dish, etc.), the maximum number of carbs, the minimum amount of protein, and the maximum amount of fat.
 ```{r}
 recipe.search<- function(key=NULL, query=NULL, diet=NULL, type=NULL, maxCarbs=NULL, minProtein=NULL, maxFat=NULL){
   if(is.null(key)){

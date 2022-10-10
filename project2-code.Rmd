@@ -36,10 +36,10 @@ recipe.search<- function(key=NULL, query=NULL, diet=NULL, type=NULL, maxCarbs=NU
     return("your API Key is required.")
   }
   basic.url<-"https://api.spoonacular.com/recipes/complexSearch"
-  search.opt<-list(query=query, diet=diet, type=type, maxCarbs=type, minProtein=minProtein, maxFat=maxFat, apiKey=key)
+  search.opt<-list(query=query, diet=diet, type=type, maxCarbs=maxCarbs, minProtein=minProtein, maxFat=maxFat, apiKey=key)
   search.opt2<-search.opt[-which(sapply(search.opt, is.null))]
   res<-paste0(basic.url,"?")
-  for(i in i:length(search.opt2)){
+  for(i in 1:length(search.opt2)){
     res<-paste0(res,"&", names(search.opt2[i]), "=", search.opt2[i])
   }
   data<-httr::GET(res)
@@ -49,18 +49,31 @@ recipe.search<- function(key=NULL, query=NULL, diet=NULL, type=NULL, maxCarbs=NU
     }
 ```
 
-Search recipe example by using the equation above:
+Search recipe example by using the function above:
 
 ```{r}
-recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chiken", maxFat=60)
+recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", maxFat=60)
 ```
 
 
 
 # Data Exploration
 
+We would like to compare two different diets of chicken recipes, one is for "ketogenic" and the other is for "whole30". 
 
+The definitions are as below:
+* **Ketogenic**: The keto diet is based more on the ratio of fat, protein, and carbs in the diet rather than specific ingredients. Generally speaking, high fat, protein-rich foods are acceptable and high carbohydrate foods are not. The formula we use is 55-80% fat content, 15-35% protein content, and under 10% of carbohydrates.
 
+* **Whole30**: Allowed ingredients include meat, fish/seafood, eggs, vegetables, fresh fruit, coconut oil, olive oil, small amounts of dried fruit and nuts/seeds. Ingredients not allowed include added sweeteners (natural and artificial, except small amounts of fruit juice), dairy (except clarified butter or ghee), alcohol, grains, legumes (except green beans, sugar snap peas, and snow peas), and food additives, such as carrageenan, MSG, and sulfites.
 
+```{r}
+recipe1<- recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", diet="ketogenic", minProtein=5, maxCarbs=100)
+recipe1
+
+recipe2<- recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", diet="whole30", minProtein=5, maxCarbs=100)
+recipe2
+```
+
+We will compare the carbohydrates and protein amount in those two different diet groups.
 
 # Wrap-Up

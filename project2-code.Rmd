@@ -34,14 +34,14 @@ Here, we list the packages required to interact with the API and use the functio
 To use some of the interaction functions in this section, you will need to have a key to access the API. You can register for free [here](https://spoonacular.com/food-api/console#Dashboard) if you do not already have a key for this API.
 
 ## `recipe.search`
-Search for recipes given query (i.e., what are you looking for?), diet type, type of dish (such as breakfast, dessert, side dish, etc.), the maximum number of carbs, the minimum amount of protein, and the maximum amount of fat.
+This function allows you to search for recipes given query (i.e., what are you looking for?), [diet type](https://spoonacular.com/food-api/docs#Diets), [type of dish](https://spoonacular.com/food-api/docs#Meal-Types) (such as breakfast, dessert, side dish, etc.), the maximum number of carbs, the minimum amount of protein, and the maximum amount of fat. To give more than one option, you will need to give a string of comma separated values.
 ```{r}
 recipe.search<- function(key=NULL, query=NULL, diet=NULL, type=NULL, maxCarbs=NULL, minProtein=NULL, maxFat=NULL){
   if(is.null(key)){
     return("your API Key is required.")
   }
   basic.url<-"https://api.spoonacular.com/recipes/complexSearch"
-  search.opt<-list(query=query, diet=diet, type=type, maxCarbs=maxCarbs, minProtein=minProtein, maxFat=maxFat, apiKey=key)
+  search.opt<-list(query=str_remove_all(query, " "), diet=str_remove_all(diet, " "), type=str_remove_all(type, " "), maxCarbs=maxCarbs, minProtein=minProtein, maxFat=maxFat, apiKey=key)
   search.opt2<-search.opt[-which(sapply(search.opt, is.null))]
   res<-paste0(basic.url,"?")
   for(i in 1:length(search.opt2)){
@@ -61,7 +61,8 @@ recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", maxFat=60
 ```
 
 ## `random.recipes`
-```{r, include=FALSE, eval=FALSE}
+With this function, you can get between 1 and 100 random recipes. You may also include tags by giving a string of comma separated values.
+```{r}
 # Gives full recipes, still editing so not included yet
 #gives 1-100 random recipes
 random.recipes <- function(apiKey, number=NULL, tags=NULL){
@@ -84,9 +85,26 @@ random.recipes <- function(apiKey, number=NULL, tags=NULL){
 ```
 
 ## `diet.restrictions`
+For people with dietary restrictions, intolerances, or sensitivities, this function allows you to specify [diet](https://spoonacular.com/food-api/docs#Diets), food [intolerances](https://spoonacular.com/food-api/docs#Intolerances), and also allows for ingredients to be excluded. To give more than one option, you will need to give a string of comma separated values.
 ```{r}
 #function to search for recipes given diet type, food intolerances, excluded ingredients
-#use complexSearch
+diet.restrictions <- function(apiKey, diet=NULL, intolerances=NULL, exclude=NULL){
+  if(is.null(apiKey)){
+    return("Please enter your API key.")
+  }
+  
+  baseURL <- "https://api.spoonacular.com/recipes/complexSearch"
+  input <- list(diet = str_remove_all(diet, " "), intolerances = str_remove_all(intolerances, " "), excludeIngredients = str_remove_all(exclude, " "))
+  opts <- input[-which(sapply(input, is.null))]
+  link <- paste0(baseURL, "?apiKey=", apiKey)
+  for(i in 1:length(opts)){
+    link<-paste0(link,"&", names(opts[i]), "=", opts[i])
+  }
+  dat <- httr::GET(link)
+  df<- jsonlite::fromJSON(dat$url)
+  results <- as.data.frame(df)
+  return(results)
+}
 ```
 
 
@@ -118,7 +136,7 @@ nutri1<-data.frame(t(matrix(unlist(nutri1),nrow=6))) %>% select(X3, X4) %>% rena
 nutri1
 ```
 
-* utrition table for recipie2
+* nutrition table for recipe2
 
 ```{r}
 nutri2<-recipe2$results.nutrition

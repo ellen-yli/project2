@@ -110,4 +110,27 @@ recipe2
 
 We will compare the carbohydrates and protein amount in those two different diet groups.
 
+* nutrition table for recipe1
+
+```{r}
+nutri1<-recipe1$results.nutrition
+nutri1<-data.frame(t(matrix(unlist(nutri1),nrow=6))) %>% select(X3, X4) %>% rename(Protein=X3, Carbohydrates=X4) %>% add_column(Diet="keto")
+nutri1
+```
+
+* utrition table for recipie2
+
+```{r}
+nutri2<-recipe2$results.nutrition
+nutri2<-data.frame(t(matrix(unlist(nutri2),nrow=6))) %>% select(X3, X4) %>% rename(Protein=X3, Carbohydrates=X4) %>% add_column(Diet="whole")
+nutri2
+```
+Combine the above nutrition tables together.
+
+```{r}
+nutri<-bind_rows(nutri1, nutri2)
+nutri
+```
+
+
 # Wrap-Up

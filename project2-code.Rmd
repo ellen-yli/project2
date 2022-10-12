@@ -19,7 +19,7 @@ library(tidyverse)
 ```
 This vignette explains how to contact an API, demonstrated with the [Spoonacular Food API](https://spoonacular.com/food-api). We will create functions to interact with the API and return data. 
 
-# Example of R-code that can contact Food data API by searching criteria
+### Example of R code that Can Contact the Food API by Search Criteria
 First, we'll show an example of how to contact the API using the complex recipe search:
 ```{r}
 res<-GET("https://api.spoonacular.com/recipes/complexSearch?query=chicken&maxFat=60&number=5&apiKey=be3c2a74ce6c4f0c83b254b34ceca7f5")
@@ -136,16 +136,16 @@ diet.restrictions <- function(apiKey=NULL, query=NULL, diet=NULL, intolerances=N
 
 An example of this function is shown here:
 ```{r}
-diet.restrictions(apiKey = "31bf40952ec14026b2f82b5055fdab93", query="salmon", diet = "paleo", intolerances = "tree nut")
+diet<-diet.restrictions(apiKey = "31bf40952ec14026b2f82b5055fdab93", query="salmon", diet = "paleo", intolerances = "tree nut")
 ```
 
 
 
 # Data Exploration
 
-## Compare two different diets' chicken recipes: Ketogenic vs. Whole 30 
+### Compare two different diets' chicken recipes: Ketogenic vs. Whole 30 
 
-The definitions are as below:  
+The descriptions of the diets are as follows:  
 * **Ketogenic**: The keto diet is based more on the ratio of fat, protein, and carbs in the diet rather than specific ingredients. Generally speaking, high fat, protein-rich foods are acceptable and high carbohydrate foods are not. The formula we use is 55-80% fat content, 15-35% protein content, and under 10% of carbohydrates.  
 * **Whole30**: Allowed ingredients include meat, fish/seafood, eggs, vegetables, fresh fruit, coconut oil, olive oil, small amounts of dried fruit and nuts/seeds. Ingredients not allowed include added sweeteners (natural and artificial, except small amounts of fruit juice), dairy (except clarified butter or ghee), alcohol, grains, legumes (except green beans, sugar snap peas, and snow peas), and food additives, such as carrageenan, MSG, and sulfites.
 
@@ -159,7 +159,7 @@ recipe2
 
 We will compare the carbohydrates and protein amount in those two different diet groups.
 
-* nutrition table for recipe1
+* Nutrition table for recipe1:
 
 ```{r}
 nutri1<-recipe1$results.nutrition
@@ -167,7 +167,7 @@ nutri1<-data.frame(t(matrix(unlist(nutri1),nrow=6))) %>% select(X3, X4) %>% rena
 nutri1
 ```
 
-* nutrition table for recipe2
+* Nutrition table for recipe2:
 
 ```{r}
 nutri2<-recipe2$results.nutrition
@@ -181,7 +181,7 @@ nutri<-bind_rows(nutri1, nutri2)
 nutri
 ```
 
-### Create two new columns:  
+#### Create two new columns:  
 * PC.ratio: Represents Protein to Carbohydrates ratio in each recipe  
 * Protein.level: Diet is rich in protein if PC.ratio >= 4, or balanced if PC.ratio < 4.
 
@@ -192,7 +192,7 @@ nutri_new<-nutri %>% mutate(PC.ratio=(Protein/Carbohydrates)) %>% mutate(Protein
 nutri_new
 ```
 
-### Create a summary(contingency table) of how many protein rich recipes in "keto" and "whole 30" groups repectively:
+#### Create a summary of how many protein rich recipes in "keto" and "whole 30" groups repectively:
 
 ```{r}
 table(nutri_new$Diet, nutri_new$Protein.content)
@@ -200,7 +200,7 @@ table(nutri_new$Diet, nutri_new$Protein.content)
 
 As shown in the table above, there are a few more protein rich diets in the "whole 30" group. However, the protein content does not seem to differ much between the two groups.
 
-### Some summaries about carbohydrates amount (in grams) in different subgroups of the nutrients data set.
+#### Some summaries about carbohydrates amount (in grams) in different subgroups of the nutrients data set.
 
 ```{r}
 nutri_new %>% group_by (Diet) %>% summarize(mean_car=mean(Carbohydrates), SD_car=sd(Carbohydrates))
@@ -213,9 +213,9 @@ nutri_new %>% group_by (Diet) %>% summarize(mean_pro=mean(Protein), SD_pro=sd(Pr
 ```
 Based on the summary table above, the mean and standard deviation of protein (in grams) does not differ much between the "whole 30" diet and "keto" diet. 
 
-### Plots about carbohydrates and Protein content in different subgroups of the nutrients data set.
+#### Plots about carbohydrates and Protein content in different subgroups of the nutrients data set.
 
-* Bar plot of protein level (rich and balanced) in "keto" and "whole 30" groups
+##### Bar plot of protein level (rich and balanced) in "keto" and "whole 30" groups
 
 ```{r}
 ggplot(data=nutri_new, aes(x=Diet)) +
@@ -225,17 +225,17 @@ ggplot(data=nutri_new, aes(x=Diet)) +
 
 We would like to compare if the protein content (rich or balanced) are same among two diet groups. Based on the plot, "keto" diet has more balanced protein content in the recipe than "whole30" groups. However, we only have 10 recipes in each groups. More samples might be needed if we want to know which diet is more healthier.
 
-* Histogram of carbohydrates amount (in grams) in two diet groups
+#####  Histogram of carbohydrates amount (in grams) in two diet groups
 
 ```{r}
 ggplot(nutri_new)+
   geom_histogram(aes(x=Carbohydrates, fill=Diet), colour="black", alpha=0.4, position = "identity") +
-  labs(x = "carbohydrates amount in grams", title = "Histogram of carbohydrates amount in two diet groups")
+  labs(x = "Carbohydrates Amount (in grams)", title = "Histogram of carbohydrates amount in two diet groups")
 ```
 
 This histogram is for the continuous variable "carbohydrates" in our dataset. We would like to how the amount of carbohydrates are distributed among two diet groups. It looks like most recipes have low carbohydrates in both diet groups, mostly around 10 grams. However, there is one recipe in "whole30" group with high carbohydrates.
 
-* Box plot of protein amount (in grams) in two diet groups
+#####  Box plot of protein amount (in grams) in two diet groups
 
 ```{r}
 ggplot(nutri_new, aes(x=Diet, y=Protein)) +
@@ -245,7 +245,7 @@ ggplot(nutri_new, aes(x=Diet, y=Protein)) +
 
 This box plot is comparing protein content among two diet groups. The median value of protein is higher in "keto" groups than "whole30" groups. The interquartile range (IQR) is wider for "whole30" group than "keto" group , which indicates more data variability in "whole30" group.
 
-* Scatter plot of Protein/carbohydrates amount in each recipe of two diet groups
+#####  Scatter plot of Protein/carbohydrates amount in each recipe of two diet groups
 
 ```{r}
 ggplot(nutri_new, aes(x=Carbohydrates, y=Protein, color=Diet, shape=Diet)) +
@@ -256,13 +256,38 @@ ggplot(nutri_new, aes(x=Carbohydrates, y=Protein, color=Diet, shape=Diet)) +
 This scatter plot is comparing Protein/Carbohydrates content in each recipe of the two groups. When the Protein/carbohydrates ratio gets too large, it might harm our body since the Protein is too high. We can easily visualize the slope of the points for each diet group, so that we will know which diet might have a higher Protein to Carbohydrates ratio.
 
 
+### Looking at randomly generated recipes
 
+Using our `random.recipes` function, we can specify how many recipes we want. since these are random, we're not as able to do something like the comparison between the Keto and Whole30 diets as we just did. We would need to set a seed to get the same recipes each time, or we might just generate two recipes to compare and look at one of the more complex parts of each data, such as recipes.extendedIngredients, which is a "column" in our data that is actually another data frame within it. We will look at a more simple exploration with this function.
 
-Looking at random recipes, we can specify how many recipes we want, and we can see how many fall into specific types. For example,how many of our recipes are vegetarian only, dairy free only, both, or neither.
+#### Summary Tables
+
+The data given whenever we generate our recipes tells us whether the recipe is: vegetarian, vegan, gluten free, dairy free, "very healthy", cheap, very popular, sustainable, or low FODMAP. We might see how many of our recipes fall into certain groups. For example, how many of our recipes are vegetarian only, dairy free only, both, or neither.
 ```{r}
-rand <- random.recipes(apiKey = "31bf40952ec14026b2f82b5055fdab93", number=20)
+rand <- random.recipes(apiKey = "31bf40952ec14026b2f82b5055fdab93", number=30)
 table(Vegetarian=rand$recipes.vegetarian, DairyFree=rand$recipes.dairyFree)
 ```
+#### Counts of recipes
+We might for example see counts of recipes by the number of servings these recipes yield.
+```{r}
+ggplot(rand, aes(recipes.servings)) + geom_bar() +labs(x="Servings Yielded", y="Count", title = "Counts of Recipes per Number of Servings")
+```
+#### Simple Summaries for numeric data
+
+If following a Weight Watchers diet, we might look at basic summary information of the SmartPoints from these recipes.
+```{r}
+ggplot(rand, aes(recipes.weightWatcherSmartPoints)) + geom_boxplot() + labs(x="SmartPoints", title = "Basic Summary Stats for Weight Watcher SmartPoints")
+
+```
+
+We might even see the spread of total recipe times.
+```{r}
+ggplot(rand, aes(recipes.readyInMinutes)) + geom_histogram(binwidth = 2.5) + labs(x="Total Time", y="Count", title = "Spread of Recipe Times")
+```
+### Restrictions
+The diet restriction function is more for finding recipes based on diet. If we were to add more options to our function and use them, such as recipe information (`addRecipeInformation=TRUE`) or nutritional information (`addRecipeNutrition=TRUE`, `maxCalories`, `maxFat`, `maxCarbs`, etc.), we would be able to do data analysis much like the Keto vs Whole30 comparison, or the recipe comparison described for the randomly generated recipes.
 
 
 # Wrap-Up
+To summarize what happened in this vignette, we created functions to interact with the Spoonacular Food API, retrieving data from various endpoints, and exploring the data with tables, charts, and plots.
+We hope the vignette is a useful example in how to connect with an API and ways to explore the data from the what's retrieved.

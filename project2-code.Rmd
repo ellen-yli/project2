@@ -7,6 +7,8 @@ output:
   html_document:
     toc: TRUE
     toc_depth: 2
+    code_folding: show
+    df_print: tibble
 ---
 
 ```{r packages, include=FALSE}
@@ -18,14 +20,17 @@ library(tidyverse)
 This vignette explains how to contact an API, demonstrated with the [Spoonacular Food API](https://spoonacular.com/food-api). We will create functions to interact with the API and return data. 
 
 # Example of R-code that can contact Food data API by searching criteria
-
+First, we'll show an example of how to contact the API using the complex recipe search:
 ```{r}
 res<-GET("https://api.spoonacular.com/recipes/complexSearch?query=chicken&maxFat=60&number=5&apiKey=be3c2a74ce6c4f0c83b254b34ceca7f5")
+dat<-fromJSON(res$url)
+as.data.frame(dat)
 ```
+However, new searches are tedious to type out each time! We will create functions to interact with the API to retrieve data.
 
 # Package Requirements
 
-Here, we list the packages required to interact with the API and use the functions in this vignette.
+Here, we list the packages required to interact with the API and use the functions defined in this vignette.  
 - `httr` \- used to access the API  
 - `jsonlite` \- used to convert the data from the API into a data frame  
 - `tidyverse` \- used for data manipulation and graphing
@@ -34,19 +39,25 @@ Here, we list the packages required to interact with the API and use the functio
 To use some of the interaction functions in this section, you will need to have a key to access the API. You can register for free [here](https://spoonacular.com/food-api/console#Dashboard) if you do not already have a key for this API.
 
 ## `recipe.search`
-This function allows you to search for recipes given query (i.e., what are you looking for?), [diet type](https://spoonacular.com/food-api/docs#Diets), [type of dish](https://spoonacular.com/food-api/docs#Meal-Types) (such as breakfast, dessert, side dish, etc.), the maximum number of carbs, the minimum amount of protein, and the maximum amount of fat. To give more than one option, you will need to give a string of comma separated values.
+This function allows you to search for recipes given query (i.e., what are you looking for?), [diet type](https://spoonacular.com/food-api/docs#Diets), [type of dish](https://spoonacular.com/food-api/docs#Meal-Types) (such as breakfast, dessert, side dish, etc.), the maximum number of carbs (in grams), the minimum amount of protein (in grams), and the maximum amount of fat (in grams). To give more than one option for a given input, you will need to give a string of comma separated values.
 ```{r}
 recipe.search<- function(key=NULL, query=NULL, diet=NULL, type=NULL, maxCarbs=NULL, minProtein=NULL, maxFat=NULL){
   if(is.null(key)){
     return("your API Key is required.")
   }
   basic.url<-"https://api.spoonacular.com/recipes/complexSearch"
-  search.opt<-list(query=query, diet=diet, type=type, maxCarbs=maxCarbs, minProtein=minProtein, maxFat=maxFat, apiKey=key)
+  search.opt<-list(query=query, diet=diet, type=type, maxCarbs=maxCarbs, minProtein=minProtein, maxFat=maxFat, apiKey=key, NULL)
   search.opt2<-search.opt[-which(sapply(search.opt, is.null))]
+  #remove spaces from user input
+  for(i in 1:length(search.opt2)){
+    search.opt2[i]<-str_remove_all(search.opt2[i], " ")
+  }
   res<-paste0(basic.url,"?")
   for(i in 1:length(search.opt2)){
     res<-paste0(res,"&", names(search.opt2[i]), "=", search.opt2[i])
   }
+  res <- str_remove(res, "&")    #remove the first &, unnecessary
+
   data<-httr::GET(res)
   mydf<- jsonlite::fromJSON(data$url)
   result<-as.data.frame(mydf)
@@ -55,25 +66,63 @@ recipe.search<- function(key=NULL, query=NULL, diet=NULL, type=NULL, maxCarbs=NU
 ```
 
 Search recipe example by using the function above:
-
 ```{r}
 recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", maxFat=60)
 ```
 
 ## `random.recipes`
-With this function, you can get between 1 and 100 random recipes. ~~You may also include tags by giving a string of comma separated values.~~
+With this function, you can get between 1 and 100 random recipes. You may also include tags by giving a string of comma separated values.
 ```{r}
-# Gives full recipes, still editing so not included yet
 #gives 1-100 random recipes
 random.recipes <- function(apiKey=NULL, number=NULL, tags=NULL){
   if(is.null(apiKey)){
     return("Please enter your API key.")
   }
   
-  baseURL <- "https://api.spoonacular.com/recipes/random"
-  input <- list(apiKey=apiKey, number=number, tags=tags)
+  input <- list(apiKey=apiKey, number=number, tags=tags, NULL)   #null list item to use all options
   opts <- input[-which(sapply(input, is.null))]
-  link <- paste0(baseURL, "?")
+  #remove spaces from user input
+  for(i in 1:length(opts)){
+    opts[i]<-str_remove_all(opts[i], " ")
+  }
+  #cerate URL
+  link <- "https://api.spoonacular.com/recipes/random?"
+  for(i in 1:length(opts)){
+    link<-paste0(link,"&", names(opts[i]), "=", opts[i])
+  }
+  link <- str_remove(link, "&")    #remove the first &
+  
+  dat <- httr::GET(link)
+  df<- jsonlite::fromJSON(dat$url)
+  results <- as.data.frame(df)
+  return(results)
+}
+```
+
+We show an example of this function here.
+```{r}
+random.recipes(apiKey = "31bf40952ec14026b2f82b5055fdab93", number=20, tags = "carrots, potatoes")
+```
+
+
+## `diet.restrictions`
+For people with dietary restrictions, intolerances, or sensitivities, this function allows you to specify [diet](https://spoonacular.com/food-api/docs#Diets) and food [intolerances](https://spoonacular.com/food-api/docs#Intolerances). It also allows for ingredients to be excluded or included. To give more than one option for a given input, you will need to give a string of comma separated values.
+```{r}
+#function to search for recipes given diet type, food intolerances, excluded ingredients
+diet.restrictions <- function(apiKey=NULL, query=NULL, diet=NULL, intolerances=NULL, exclude=NULL, include=NULL){
+  #require API key
+  if(is.null(apiKey)){
+    return("Please enter your API key.")
+  }
+  
+  input <- list(apiKey=apiKey, query=query, diet=diet, intolerances=intolerances, excludeIngredients=exclude, includeIngredients=include, NULL)
+  opts <- input[-which(sapply(input, is.null))]
+  #remove spaces from user input
+  for(i in 1:length(opts)){
+    opts[i]<-str_remove_all(opts[i], " ")
+  }
+  #create URL
+  link <- "https://api.spoonacular.com/recipes/complexSearch?"
   for(i in 1:length(opts)){
     link<-paste0(link,"&", names(opts[i]), "=", opts[i])
   }
@@ -85,35 +134,19 @@ random.recipes <- function(apiKey=NULL, number=NULL, tags=NULL){
 }
 ```
 
-## `diet.restrictions`
-For people with dietary restrictions, intolerances, or sensitivities, this function allows you to specify [diet](https://spoonacular.com/food-api/docs#Diets) and food [intolerances](https://spoonacular.com/food-api/docs#Intolerances). ~~It also allows for ingredients to be excluded. To give more than one option, you will need to give a string of comma separated values.~~
+An example of this function is shown here:
 ```{r}
-#function to search for recipes given diet type, food intolerances, excluded ingredients
-diet.restrictions <- function(apiKey=NULL, diet=NULL, intolerances=NULL, exclude=NULL){
-  if(is.null(apiKey)){
-    return("Please enter your API key.")
-  }
-  
-  baseURL <- "https://api.spoonacular.com/recipes/complexSearch"
-  input <- list(diet = diet, intolerances = intolerances, excludeIngredients = exclude)
-  opts <- input[-which(sapply(input, is.null))]
-  link <- paste0(baseURL, "?apiKey=", apiKey)
-  for(i in 1:length(opts)){
-    link<-paste0(link,"&", names(opts[i]), "=", opts[i])
-  }
-  dat <- httr::GET(link)
-  df<- jsonlite::fromJSON(dat$url)
-  results <- as.data.frame(df)
-  return(results)
-}
+diet.restrictions(apiKey = "31bf40952ec14026b2f82b5055fdab93", query="salmon", diet = "paleo", intolerances = "tree nut")
 ```
+
+
 
 # Data Exploration
 
-## Compare two different diets of chicken recipes, one is for "ketogenic" and the other is for "whole30". 
+## Compare two different diets' chicken recipes: Ketogenic vs. Whole 30 
 
 The definitions are as below:  
-* **Ketogenic**: The keto diet is based more on the ratio of fat, protein, and carbs in the diet rather than specific ingredients. Generally speaking, high fat, protein-rich foods are acceptable and high carbohydrate foods are not. The formula we use is 55-80% fat content, 15-35% protein content, and under 10% of carbohydrates.
+* **Ketogenic**: The keto diet is based more on the ratio of fat, protein, and carbs in the diet rather than specific ingredients. Generally speaking, high fat, protein-rich foods are acceptable and high carbohydrate foods are not. The formula we use is 55-80% fat content, 15-35% protein content, and under 10% of carbohydrates.  
 * **Whole30**: Allowed ingredients include meat, fish/seafood, eggs, vegetables, fresh fruit, coconut oil, olive oil, small amounts of dried fruit and nuts/seeds. Ingredients not allowed include added sweeteners (natural and artificial, except small amounts of fruit juice), dairy (except clarified butter or ghee), alcohol, grains, legumes (except green beans, sugar snap peas, and snow peas), and food additives, such as carrageenan, MSG, and sulfites.
 
 ```{r}
@@ -148,9 +181,9 @@ nutri<-bind_rows(nutri1, nutri2)
 nutri
 ```
 
-### Create two new columns:
-* PC.ratio: represent Protein to Carbohydrates ratio in each recipe
-* Protein.level: Diet rich in protein if PC.ratio >= 4 or balanced if PC.ratio < 4.
+### Create two new columns:  
+* PC.ratio: Represents Protein to Carbohydrates ratio in each recipe  
+* Protein.level: Diet is rich in protein if PC.ratio >= 4, or balanced if PC.ratio < 4.
 
 ```{r}
 nutri$Protein<- as.numeric(nutri$Protein)
@@ -159,13 +192,13 @@ nutri_new<-nutri %>% mutate(PC.ratio=(Protein/Carbohydrates)) %>% mutate(Protein
 nutri_new
 ```
 
-### Create the summary(contingency table) of how many protein rich recipes in "keto" and "whole 30" groups repectively:
+### Create a summary(contingency table) of how many protein rich recipes in "keto" and "whole 30" groups repectively:
 
 ```{r}
 table(nutri_new$Diet, nutri_new$Protein.content)
 ```
 
-As showing in the table above, there are a little bit more protein riched diet in the "whole 30" group. However, the protein content does not seem to be differ a lot among the two groups.
+As shown in the table above, there are a few more protein rich diets in the "whole 30" group. However, the protein content does not seem to differ much between the two groups.
 
 ### Some summaries about carbohydrates amount (in grams) in different subgroups of the nutrients data set.
 
@@ -173,16 +206,16 @@ As showing in the table above, there are a little bit more protein riched diet i
 nutri_new %>% group_by (Diet) %>% summarize(mean_car=mean(Carbohydrates), SD_car=sd(Carbohydrates))
 ```
 
-* Based on the summary table above, the mean of carbohydrates (in grams) is higher in "whole-30" diet than "keto" diet. However, the data varies a lot in "whole-30" groups due to a large number of standard deviation. 
+Based on the summary table above, the mean of carbohydrates (in grams) is higher in "whole 30" diet than the "keto" diet. However, the data varies a lot in "whole 30" groups due to a larger standard deviation. 
 
 ```{r}
 nutri_new %>% group_by (Diet) %>% summarize(mean_pro=mean(Protein), SD_pro=sd(Protein))
 ```
-* Based on the summary table above, the mean and standard deviation of protein (in grams) does not differ much among "whole-30" diet and "keto" diet. 
+Based on the summary table above, the mean and standard deviation of protein (in grams) does not differ much between the "whole 30" diet and "keto" diet. 
 
 ### Plots about carbohydrates and Protein content in different subgroups of the nutrients data set.
 
-* Bar-plot of protein amount (rich and balanced) in "keto" and "whole-30" groups.
+* Bar plot of protein level (rich and balanced) in "keto" and "whole 30" groups
 
 ```{r}
 ggplot(data=nutri_new, aes(x=Diet)) +
@@ -190,7 +223,7 @@ ggplot(data=nutri_new, aes(x=Diet)) +
   labs(x="Protein content", title="Bar Plot of Protein content")
 ```
 
-I would like to compare if the protein content (rich or balanced) are same among two diet groups. Based on the plot, "keto" diet has more balanced protein content in the recipe than "whole30" groups. However, we only have 10 recipes in each groups. More samples might be needed if we want to know which diet is more healthier.
+We would like to compare if the protein content (rich or balanced) are same among two diet groups. Based on the plot, "keto" diet has more balanced protein content in the recipe than "whole30" groups. However, we only have 10 recipes in each groups. More samples might be needed if we want to know which diet is more healthier.
 
 * Histogram of carbohydrates amount (in grams) in two diet groups
 
@@ -200,7 +233,7 @@ ggplot(nutri_new)+
   labs(x = "carbohydrates amount in grams", title = "Histogram of carbohydrates amount in two diet groups")
 ```
 
-This histogram is for the continuous variable "carbohydrates" in my dataset. I would like to how the amount of carbohydrates distributed among two diet groups. It looks like most recipes have low carbohydrates in both diet groups, mostly around 10 grams. However, there is one recipe in "whole30" group with high carbohydrates.
+This histogram is for the continuous variable "carbohydrates" in our dataset. We would like to how the amount of carbohydrates are distributed among two diet groups. It looks like most recipes have low carbohydrates in both diet groups, mostly around 10 grams. However, there is one recipe in "whole30" group with high carbohydrates.
 
 * Box plot of protein amount (in grams) in two diet groups
 
@@ -210,7 +243,7 @@ ggplot(nutri_new, aes(x=Diet, y=Protein)) +
   labs(title="Box plot of protein amount in two diet groups")
 ```
 
-This box plot is comparing protein content among two diet groups. The median value of protein is higher in "keto" group than "whole30" groups. IQR is wider for "whole30" group than "keto" group , which indicate a more data variability in "whole30" group.
+This box plot is comparing protein content among two diet groups. The median value of protein is higher in "keto" groups than "whole30" groups. The interquartile range (IQR) is wider for "whole30" group than "keto" group , which indicates more data variability in "whole30" group.
 
 * Scatter plot of Protein/carbohydrates amount in each recipe of two diet groups
 
@@ -220,7 +253,10 @@ ggplot(nutri_new, aes(x=Carbohydrates, y=Protein, color=Diet, shape=Diet)) +
   labs(title="Scatter plot of Protein and Carbohydrates amount in two diet groups ")
 ```
 
-This scatter plot is comparing Protein/Carbohydrates content in each recipe of the two groups. When Protein/carbohydrates ratio gets too large, it might harm our body since the Protein is too high. We can easily visualize the slope of the points for each diet group, so that we will know which diet might have a higher Protein to Carbohydrates ratio.
+This scatter plot is comparing Protein/Carbohydrates content in each recipe of the two groups. When the Protein/carbohydrates ratio gets too large, it might harm our body since the Protein is too high. We can easily visualize the slope of the points for each diet group, so that we will know which diet might have a higher Protein to Carbohydrates ratio.
+
+
+
 
 Looking at random recipes, we can specify how many recipes we want, and we can see how many fall into specific types. For example,how many of our recipes are vegetarian only, dairy free only, both, or neither.
 ```{r}

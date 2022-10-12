@@ -22,7 +22,7 @@ This vignette explains how to contact an API, demonstrated with the [Spoonacular
 ### Example of R code that Can Contact the Food API by Search Criteria
 First, we'll show an example of how to contact the API using the complex recipe search:
 ```{r}
-res<-GET("https://api.spoonacular.com/recipes/complexSearch?query=chicken&maxFat=60&number=5&apiKey=be3c2a74ce6c4f0c83b254b34ceca7f5")
+res<-GET("https://api.spoonacular.com/recipes/complexSearch?query=chicken&maxFat=60&number=5&apiKey=31bf40952ec14026b2f82b5055fdab93")
 dat<-fromJSON(res$url)
 as.data.frame(dat)
 ```
@@ -67,7 +67,7 @@ recipe.search<- function(key=NULL, query=NULL, diet=NULL, type=NULL, maxCarbs=NU
 
 Search recipe example by using the function above:
 ```{r}
-recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", maxFat=60)
+recipe.search(key="31bf40952ec14026b2f82b5055fdab93", query="chicken", maxFat=60)
 ```
 
 ## `random.recipes`
@@ -150,10 +150,10 @@ The descriptions of the diets are as follows:
 * **Whole30**: Allowed ingredients include meat, fish/seafood, eggs, vegetables, fresh fruit, coconut oil, olive oil, small amounts of dried fruit and nuts/seeds. Ingredients not allowed include added sweeteners (natural and artificial, except small amounts of fruit juice), dairy (except clarified butter or ghee), alcohol, grains, legumes (except green beans, sugar snap peas, and snow peas), and food additives, such as carrageenan, MSG, and sulfites.
 
 ```{r}
-recipe1<- recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", diet="ketogenic", minProtein=5, maxCarbs=100)
+recipe1<- recipe.search(key="31bf40952ec14026b2f82b5055fdab93", query="chicken", diet="ketogenic", minProtein=5, maxCarbs=100)
 recipe1
 
-recipe2<- recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", diet="whole30", minProtein=5, maxCarbs=100)
+recipe2<- recipe.search(key="31bf40952ec14026b2f82b5055fdab93", query="chicken", diet="whole30", minProtein=5, maxCarbs=100)
 recipe2
 ```
 

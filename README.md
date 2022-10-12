@@ -7,13 +7,13 @@ This vignette explains how to contact an API, demonstrated with the
 [Spoonacular Food API](https://spoonacular.com/food-api). We will create
 functions to interact with the API and return data.
 
-# Example of R-code that can contact Food data API by searching criteria
+### Example of R code that Can Contact the Food API by Search Criteria
 
 First, we’ll show an example of how to contact the API using the complex
 recipe search:
 
 ``` r
-res<-GET("https://api.spoonacular.com/recipes/complexSearch?query=chicken&maxFat=60&number=5&apiKey=be3c2a74ce6c4f0c83b254b34ceca7f5")
+res<-GET("https://api.spoonacular.com/recipes/complexSearch?query=chicken&maxFat=60&number=5&apiKey=31bf40952ec14026b2f82b5055fdab93")
 dat<-fromJSON(res$url)
 as.data.frame(dat)
 ```
@@ -88,7 +88,7 @@ recipe.search<- function(key=NULL, query=NULL, diet=NULL, type=NULL, maxCarbs=NU
 Search recipe example by using the function above:
 
 ``` r
-recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", maxFat=60)
+recipe.search(key="31bf40952ec14026b2f82b5055fdab93", query="chicken", maxFat=60)
 ```
 
     ##    results.id     results.title                                           results.image results.imageType
@@ -347,29 +347,8 @@ diet.restrictions <- function(apiKey=NULL, query=NULL, diet=NULL, intolerances=N
 An example of this function is shown here:
 
 ``` r
-diet.restrictions(apiKey = "31bf40952ec14026b2f82b5055fdab93", query="salmon", diet = "paleo", intolerances = "tree nut")
+diet<-diet.restrictions(apiKey = "31bf40952ec14026b2f82b5055fdab93", query="salmon", diet = "paleo", intolerances = "tree nut")
 ```
-
-    ##   results.id                                                                    results.title
-    ## 1     659035                                                 Salmon & Vegetables En Papillote
-    ## 2     645856                               Grilled Salmon With Cherry, Pineapple, Mango Salsa
-    ## 3     645849                      Grilled Salmon Salad With Blood Orange Cilantro Vinaigrette
-    ## 4    1096260                                                               Baked Lemon Salmon
-    ## 5     648320                                                       Jade Buddha Salmon Tartare
-    ## 6    1096261                                                             Bacon-Wrapped Salmon
-    ## 7     658483                                             Roasted Alaskan Salmon with Cherries
-    ## 8    1697553                               Pan-Seared Honey Glazed Salmon with Collard Greens
-    ## 9     659143 Salmon, Watercress, Fennel and Baby Beetroot Salad With Lemony "Caviar" Dressing
-    ##                                              results.image results.imageType offset number totalResults
-    ## 1  https://spoonacular.com/recipeImages/659035-312x231.jpg               jpg      0     10            9
-    ## 2  https://spoonacular.com/recipeImages/645856-312x231.jpg               jpg      0     10            9
-    ## 3  https://spoonacular.com/recipeImages/645849-312x231.jpg               jpg      0     10            9
-    ## 4 https://spoonacular.com/recipeImages/1096260-312x231.jpg               jpg      0     10            9
-    ## 5  https://spoonacular.com/recipeImages/648320-312x231.jpg               jpg      0     10            9
-    ## 6 https://spoonacular.com/recipeImages/1096261-312x231.jpg               jpg      0     10            9
-    ## 7  https://spoonacular.com/recipeImages/658483-312x231.jpg               jpg      0     10            9
-    ## 8 https://spoonacular.com/recipeImages/1697553-312x231.jpg               jpg      0     10            9
-    ## 9  https://spoonacular.com/recipeImages/659143-312x231.jpg               jpg      0     10            9
 
 # Data Exploration
 
@@ -390,7 +369,7 @@ green beans, sugar snap peas, and snow peas), and food additives, such
 as carrageenan, MSG, and sulfites.
 
 ``` r
-recipe1<- recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", diet="ketogenic", minProtein=5, maxCarbs=100)
+recipe1<- recipe.search(key="31bf40952ec14026b2f82b5055fdab93", query="chicken", diet="ketogenic", minProtein=5, maxCarbs=100)
 recipe1
 ```
 
@@ -429,7 +408,7 @@ recipe1
     ## 10 Protein, Carbohydrates, 21.6755, 4.19103, g, g      0     10           18
 
 ``` r
-recipe2<- recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", diet="whole30", minProtein=5, maxCarbs=100)
+recipe2<- recipe.search(key="31bf40952ec14026b2f82b5055fdab93", query="chicken", diet="whole30", minProtein=5, maxCarbs=100)
 recipe2
 ```
 
@@ -459,7 +438,7 @@ recipe2
 We will compare the carbohydrates and protein amount in those two
 different diet groups.
 
--   nutrition table for recipe1
+-   Nutrition table for recipe1:
 
 ``` r
 nutri1<-recipe1$results.nutrition
@@ -479,7 +458,7 @@ nutri1
     ## 9  31.1055       11.2495 keto
     ## 10 21.6755       4.19103 keto
 
--   nutrition table for recipe2
+-   Nutrition table for recipe2:
 
 ``` r
 nutri2<-recipe2$results.nutrition
@@ -631,7 +610,7 @@ we want to know which diet is more healthier.
 ``` r
 ggplot(nutri_new)+
   geom_histogram(aes(x=Carbohydrates, fill=Diet), colour="black", alpha=0.4, position = "identity") +
-  labs(x = "carbohydrates amount in grams", title = "Histogram of carbohydrates amount in two diet groups")
+  labs(x = "Carbohydrates Amount (in grams)", title = "Histogram of carbohydrates amount in two diet groups")
 ```
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
@@ -678,25 +657,72 @@ will know which diet might have a higher Protein to Carbohydrates ratio.
 ### Looking at randomly generated recipes
 
 Using our `random.recipes` function, we can specify how many recipes we
-want, and we can see how many fall into specific types. For example, how
-many of our recipes are vegetarian only, dairy free only, both, or
-neither.
+want. since these are random, we’re not as able to do something like the
+comparison between the Keto and Whole30 diets as we just did. We would
+need to set a seed to get the same recipes each time, or we might just
+generate two recipes to compare and look at one of the more complex
+parts of each data, such as recipes.extendedIngredients, which is a
+“column” in our data that is actually another data frame within it. We
+will look at a more simple exploration with this function.
+
+#### Summary Tables
+
+The data given whenever we generate our recipes tells us whether the
+recipe is: vegetarian, vegan, gluten free, dairy free, “very healthy”,
+cheap, very popular, sustainable, or low FODMAP. We might see how many
+of our recipes fall into certain groups. For example, how many of our
+recipes are vegetarian only, dairy free only, both, or neither.
 
 ``` r
-rand <- random.recipes(apiKey = "31bf40952ec14026b2f82b5055fdab93", number=50)
+rand <- random.recipes(apiKey = "31bf40952ec14026b2f82b5055fdab93", number=30)
 table(Vegetarian=rand$recipes.vegetarian, DairyFree=rand$recipes.dairyFree)
 ```
 
     ##           DairyFree
     ## Vegetarian FALSE TRUE
-    ##      FALSE    19   15
-    ##      TRUE     12    4
+    ##      FALSE    10    4
+    ##      TRUE      9    7
 
-We might also see the number of servings these recipes yield.
+#### Counts of recipes
 
-If following a Weight Watchers diet, we might even look at the number of
-SmartPoints.
+We might for example see counts of recipes by the number of servings
+these recipes yield.
 
-Or, we might group by the total time.
+``` r
+ggplot(rand, aes(recipes.servings)) + geom_bar() +labs(x="Servings Yielded", y="Count", title = "Counts of Recipes per Number of Servings")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-21-1.png)<!-- --> \#### Simple
+Summaries for numeric data
+
+If following a Weight Watchers diet, we might look at basic summary
+information of the SmartPoints from these recipes.
+
+``` r
+ggplot(rand, aes(recipes.weightWatcherSmartPoints)) + geom_boxplot() + labs(x="SmartPoints", title = "Basic Summary Stats for Weight Watcher SmartPoints")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+
+We might even see the spread of total recipe times.
+
+``` r
+ggplot(rand, aes(recipes.readyInMinutes)) + geom_histogram(binwidth = 2.5) + labs(x="Total Time", y="Count", title = "Spread of Recipe Times")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-23-1.png)<!-- --> \###
+Restrictions The diet restriction function is more for finding recipes
+based on diet. If we were to add more options to our function and use
+them, such as recipe information (`addRecipeInformation=TRUE`) or
+nutritional information (`addRecipeNutrition=TRUE`, `maxCalories`,
+`maxFat`, `maxCarbs`, etc.), we would be able to do data analysis much
+like the Keto vs Whole30 comparison, or the recipe comparison described
+for the randomly generated recipes.
 
 # Wrap-Up
+
+To summarize what happened in this vignette, we created functions to
+interact with the Spoonacular Food API, retrieving data from various
+endpoints, and exploring the data with tables, charts, and plots. We
+hope the vignette is a useful example in how to connect with an API and
+ways to explore the data from the what’s retrieved.

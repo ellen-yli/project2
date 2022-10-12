@@ -190,6 +190,8 @@ ggplot(data=nutri_new, aes(x=Diet)) +
   labs(x="Protein content", title="Bar Plot of Protein content")
 ```
 
+I would like to compare if the protein content (rich or balanced) are same among two diet groups. Based on the plot, "keto" diet has more balanced protein content in the recipe than "whole30" groups. However, we only have 10 recipes in each groups. More samples might be needed if we want to know which diet is more healthier.
+
 * Histogram of carbohydrates amount (in grams) in two diet groups
 
 ```{r}
@@ -197,6 +199,8 @@ ggplot(nutri_new)+
   geom_histogram(aes(x=Carbohydrates, fill=Diet), colour="black", alpha=0.4, position = "identity") +
   labs(x = "carbohydrates amount in grams", title = "Histogram of carbohydrates amount in two diet groups")
 ```
+
+This histogram is for the continuous variable "carbohydrates" in my dataset. I would like to how the amount of carbohydrates distributed among two diet groups. It looks like most recipes have low carbohydrates in both diet groups, mostly around 10 grams. However, there is one recipe in "whole30" group with high carbohydrates.
 
 * Box plot of protein amount (in grams) in two diet groups
 
@@ -206,6 +210,8 @@ ggplot(nutri_new, aes(x=Diet, y=Protein)) +
   labs(title="Box plot of protein amount in two diet groups")
 ```
 
+This box plot is comparing protein content among two diet groups. The median value of protein is higher in "keto" group than "whole30" groups. IQR is wider for "whole30" group than "keto" group , which indicate a more data variability in "whole30" group.
+
 * Scatter plot of Protein/carbohydrates amount in each recipe of two diet groups
 
 ```{r}
@@ -214,7 +220,7 @@ ggplot(nutri_new, aes(x=Carbohydrates, y=Protein, color=Diet, shape=Diet)) +
   labs(title="Scatter plot of Protein and Carbohydrates amount in two diet groups ")
 ```
 
-
+This scatter plot is comparing Protein/Carbohydrates content in each recipe of the two groups. When Protein/carbohydrates ratio gets too large, it might harm our body since the Protein is too high. We can easily visualize the slope of the points for each diet group, so that we will know which diet might have a higher Protein to Carbohydrates ratio.
 
 Looking at random recipes, we can specify how many recipes we want, and we can see how many fall into specific types. For example,how many of our recipes are vegetarian only, dairy free only, both, or neither.
 ```{r}

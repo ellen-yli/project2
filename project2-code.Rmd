@@ -111,7 +111,7 @@ diet.restrictions <- function(apiKey, diet=NULL, intolerances=NULL, exclude=NULL
 
 # Data Exploration
 
-We would like to compare two different diets of chicken recipes, one is for "ketogenic" and the other is for "whole30". 
+## Compare two different diets of chicken recipes, one is for "ketogenic" and the other is for "whole30". 
 
 The definitions are as below:
 * **Ketogenic**: The keto diet is based more on the ratio of fat, protein, and carbs in the diet rather than specific ingredients. Generally speaking, high fat, protein-rich foods are acceptable and high carbohydrate foods are not. The formula we use is 55-80% fat content, 15-35% protein content, and under 10% of carbohydrates.
@@ -149,6 +149,73 @@ Combine the above nutrition tables together.
 nutri<-bind_rows(nutri1, nutri2)
 nutri
 ```
+
+### Create two new columns:
+* PC.ratio: represent Protein to Carbohydrates ratio in each recipe
+* Protein.level: Diet rich in protein if PC.ratio >= 4 or balanced if PC.ratio < 4.
+
+```{r}
+nutri$Protein<- as.numeric(nutri$Protein)
+nutri$Carbohydrates<-as.numeric(nutri$Carbohydrates)
+nutri_new<-nutri %>% mutate(PC.ratio=(Protein/Carbohydrates)) %>% mutate(Protein.content = if_else(PC.ratio>=4, "rich", "balanced"))
+nutri_new
+```
+
+### Create the summary(contingency table) of how many protein rich recipes in "keto" and "whole 30" groups repectively:
+
+```{r}
+table(nutri_new$Diet, nutri_new$Protein.content)
+```
+
+As showing in the table above, there are a little bit more protein riched diet in the "whole 30" group. However, the protein content does not seem to be differ a lot among the two groups.
+
+### Some summaries about carbohydrates amount (in grams) in different subgroups of the nutrients data set.
+
+```{r}
+nutri_new %>% group_by (Diet) %>% summarize(mean_car=mean(Carbohydrates), SD_car=sd(Carbohydrates))
+```
+
+* Based on the summary table above, the mean of carbohydrates (in grams) is higher in "whole-30" diet than "keto" diet. However, the data varies a lot in "whole-30" groups due to a large number of standard deviation. 
+
+```{r}
+nutri_new %>% group_by (Diet) %>% summarize(mean_pro=mean(Protein), SD_pro=sd(Protein))
+```
+* Based on the summary table above, the mean and standard deviation of protein (in grams) does not differ much among "whole-30" diet and "keto" diet. 
+
+### Plots about carbohydrates and Protein content in different subgroups of the nutrients data set.
+
+* Bar-plot of protein amount (rich and balanced) in "keto" and "whole-30" groups.
+
+```{r}
+ggplot(data=nutri_new, aes(x=Diet)) +
+  geom_bar(aes(fill=Protein.content), position = "dodge") +
+  labs(x="Protein content", title="Bar Plot of Protein content")
+```
+
+* Histogram of carbohydrates amount (in grams) in two diet groups
+
+```{r}
+ggplot(nutri_new)+
+  geom_histogram(aes(x=Carbohydrates, fill=Diet), colour="black", alpha=0.4, position = "identity") +
+  labs(x = "carbohydrates amount in grams", title = "Histogram of carbohydrates amount in two diet groups")
+```
+
+* Box plot of protein amount (in grams) in two diet groups
+
+```{r}
+ggplot(nutri_new, aes(x=Diet, y=Protein)) +
+  geom_boxplot(fill="grey") +
+  labs(title="Box plot of protein amount in two diet groups")
+```
+
+* Scatter plot of Protein/carbohydrates amount in each recipe of two diet groups
+
+```{r}
+ggplot(nutri_new, aes(x=Carbohydrates, y=Protein, color=Diet, shape=Diet)) +
+  geom_point(size = 2) +
+  labs(title="Scatter plot of Protein and Carbohydrates amount in two diet groups ")
+```
+
 
 
 # Wrap-Up

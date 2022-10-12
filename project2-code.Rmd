@@ -108,15 +108,12 @@ diet.restrictions <- function(apiKey=NULL, diet=NULL, intolerances=NULL, exclude
 }
 ```
 
-
-
 # Data Exploration
 
 ## Compare two different diets of chicken recipes, one is for "ketogenic" and the other is for "whole30". 
 
 The definitions are as below:  
 * **Ketogenic**: The keto diet is based more on the ratio of fat, protein, and carbs in the diet rather than specific ingredients. Generally speaking, high fat, protein-rich foods are acceptable and high carbohydrate foods are not. The formula we use is 55-80% fat content, 15-35% protein content, and under 10% of carbohydrates.
-
 * **Whole30**: Allowed ingredients include meat, fish/seafood, eggs, vegetables, fresh fruit, coconut oil, olive oil, small amounts of dried fruit and nuts/seeds. Ingredients not allowed include added sweeteners (natural and artificial, except small amounts of fruit juice), dairy (except clarified butter or ghee), alcohol, grains, legumes (except green beans, sugar snap peas, and snow peas), and food additives, such as carrageenan, MSG, and sulfites.
 
 ```{r}

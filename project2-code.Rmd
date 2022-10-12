@@ -41,7 +41,7 @@ recipe.search<- function(key=NULL, query=NULL, diet=NULL, type=NULL, maxCarbs=NU
     return("your API Key is required.")
   }
   basic.url<-"https://api.spoonacular.com/recipes/complexSearch"
-  search.opt<-list(query=str_remove_all(query, " "), diet=str_remove_all(diet, " "), type=str_remove_all(type, " "), maxCarbs=maxCarbs, minProtein=minProtein, maxFat=maxFat, apiKey=key)
+  search.opt<-list(query=query, diet=diet, type=type, maxCarbs=maxCarbs, minProtein=minProtein, maxFat=maxFat, apiKey=key)
   search.opt2<-search.opt[-which(sapply(search.opt, is.null))]
   res<-paste0(basic.url,"?")
   for(i in 1:length(search.opt2)){
@@ -61,22 +61,23 @@ recipe.search(key="be3c2a74ce6c4f0c83b254b34ceca7f5", query="chicken", maxFat=60
 ```
 
 ## `random.recipes`
-With this function, you can get between 1 and 100 random recipes. You may also include tags by giving a string of comma separated values.
+With this function, you can get between 1 and 100 random recipes. ~~You may also include tags by giving a string of comma separated values.~~
 ```{r}
 # Gives full recipes, still editing so not included yet
 #gives 1-100 random recipes
-random.recipes <- function(apiKey, number=NULL, tags=NULL){
+random.recipes <- function(apiKey=NULL, number=NULL, tags=NULL){
   if(is.null(apiKey)){
     return("Please enter your API key.")
   }
   
   baseURL <- "https://api.spoonacular.com/recipes/random"
-  input <- list(number=number, tags=str_remove_all(tags, " "))
+  input <- list(apiKey=apiKey, number=number, tags=tags)
   opts <- input[-which(sapply(input, is.null))]
-  link <- paste0(baseURL, "?apiKey=", apiKey)
+  link <- paste0(baseURL, "?")
   for(i in 1:length(opts)){
     link<-paste0(link,"&", names(opts[i]), "=", opts[i])
   }
+  link <- str_remove(link, "&")    #remove the first &
   dat <- httr::GET(link)
   df<- jsonlite::fromJSON(dat$url)
   results <- as.data.frame(df)
@@ -85,16 +86,16 @@ random.recipes <- function(apiKey, number=NULL, tags=NULL){
 ```
 
 ## `diet.restrictions`
-For people with dietary restrictions, intolerances, or sensitivities, this function allows you to specify [diet](https://spoonacular.com/food-api/docs#Diets), food [intolerances](https://spoonacular.com/food-api/docs#Intolerances), and also allows for ingredients to be excluded. To give more than one option, you will need to give a string of comma separated values.
+For people with dietary restrictions, intolerances, or sensitivities, this function allows you to specify [diet](https://spoonacular.com/food-api/docs#Diets) and food [intolerances](https://spoonacular.com/food-api/docs#Intolerances). ~~It also allows for ingredients to be excluded. To give more than one option, you will need to give a string of comma separated values.~~
 ```{r}
 #function to search for recipes given diet type, food intolerances, excluded ingredients
-diet.restrictions <- function(apiKey, diet=NULL, intolerances=NULL, exclude=NULL){
+diet.restrictions <- function(apiKey=NULL, diet=NULL, intolerances=NULL, exclude=NULL){
   if(is.null(apiKey)){
     return("Please enter your API key.")
   }
   
   baseURL <- "https://api.spoonacular.com/recipes/complexSearch"
-  input <- list(diet = str_remove_all(diet, " "), intolerances = str_remove_all(intolerances, " "), excludeIngredients = str_remove_all(exclude, " "))
+  input <- list(diet = diet, intolerances = intolerances, excludeIngredients = exclude)
   opts <- input[-which(sapply(input, is.null))]
   link <- paste0(baseURL, "?apiKey=", apiKey)
   for(i in 1:length(opts)){
@@ -113,7 +114,7 @@ diet.restrictions <- function(apiKey, diet=NULL, intolerances=NULL, exclude=NULL
 
 ## Compare two different diets of chicken recipes, one is for "ketogenic" and the other is for "whole30". 
 
-The definitions are as below:
+The definitions are as below:  
 * **Ketogenic**: The keto diet is based more on the ratio of fat, protein, and carbs in the diet rather than specific ingredients. Generally speaking, high fat, protein-rich foods are acceptable and high carbohydrate foods are not. The formula we use is 55-80% fat content, 15-35% protein content, and under 10% of carbohydrates.
 
 * **Whole30**: Allowed ingredients include meat, fish/seafood, eggs, vegetables, fresh fruit, coconut oil, olive oil, small amounts of dried fruit and nuts/seeds. Ingredients not allowed include added sweeteners (natural and artificial, except small amounts of fruit juice), dairy (except clarified butter or ghee), alcohol, grains, legumes (except green beans, sugar snap peas, and snow peas), and food additives, such as carrageenan, MSG, and sulfites.
@@ -216,6 +217,13 @@ ggplot(nutri_new, aes(x=Carbohydrates, y=Protein, color=Diet, shape=Diet)) +
   labs(title="Scatter plot of Protein and Carbohydrates amount in two diet groups ")
 ```
 
+
+
+Looking at random recipes, we can specify how many recipes we want, and we can see how many fall into specific types. For example,how many of our recipes are vegetarian only, dairy free only, both, or neither.
+```{r}
+rand <- random.recipes(apiKey = "31bf40952ec14026b2f82b5055fdab93", number=20)
+table(Vegetarian=rand$recipes.vegetarian, DairyFree=rand$recipes.dairyFree)
+```
 
 
 # Wrap-Up
